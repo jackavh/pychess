@@ -25,6 +25,7 @@ class Board:
         if fen is None:
             fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
         self.board = self.gen_from_fen(fen) # 8x8 board representation as 1d array
+        self.pieces = self.gen_pieces()     # datastructure storing pieces and their information
         self.to_move = fen.split(" ")[1]    # w or b
         self.castling = fen.split(" ")[2]   # KQkq, or - if no castling
         self.en_passant = fen.split(" ")[3] # e3, or - if no en passant
