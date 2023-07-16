@@ -18,19 +18,32 @@ pieces = {           # These colors are inverted, console black is white
     'k' : u'\u2654', # Black King
 }
 
+
+def string_to_pos(s):
+    # Converts a string like e2 to 12, 28 to match the board array
+    l = len(s)
+    if l % 2 != 0: # TODO: should also check for valid characters
+        raise Exception("Invalid string")
+    if l == 2: # single positon
+        return (int(s[1]) - 1) * 8 + (ord(s[0]) - 97)
+    else:
+        return [(int(s[i+1]) - 1) * 8 + (ord(s[i]) - 97) for i in range(0, l, 2)]
+
 class Board:
 
 
     def __init__(self, fen=None) -> None:
         if fen is None:
             fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+        split = fen.split(" ")
         self.board = self.gen_from_fen(fen) # 8x8 board representation as 1d array
-        self.pieces = self.gen_pieces()     # datastructure storing pieces and their information
-        self.to_move = fen.split(" ")[1]    # w or b
-        self.castling = fen.split(" ")[2]   # KQkq, or - if no castling
-        self.en_passant = fen.split(" ")[3] # e3, or - if no en passant
-        self.halfmove = fen.split(" ")[4]   # counter for 50 move rule
-        self.fullmove = fen.split(" ")[5]   # counter for full moves
+        # self.pieces = self.gen_pieces()     # datastructure storing pieces and their information
+        self.to_move = split[1]    # w or b
+        self.castling = split[2]   # KQkq, or - if no castling
+        ep = split[3] # en passant string
+        self.en_passant = string_to_pos(ep) if ep != '-' else None # e3, or - if no en passant
+        self.halfmove = split[4]   # counter for 50 move rule
+        self.fullmove = split[5]   # counter for full moves
     
 
     def __str__(self) -> str:
@@ -65,6 +78,7 @@ class Board:
     
 
     def capture(self, idx):
+        # TODO: Implement capture update behavior
         pass
 
 
@@ -93,6 +107,10 @@ class Board:
             brd += "\n"
         brd += "  a b c d e f g h"
         print(brd)
+
+
+    def get_en_passant(self):
+        return 
     
 
 b = Board()
@@ -101,5 +119,5 @@ while True:
     print('\nEnter a move (or q to quit): ', end='')
     inp = input()
     if inp == 'q':
-        exit()
+        break
     b.move(inp)
