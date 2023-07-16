@@ -31,17 +31,17 @@ class Piece:
 
     def gen_moves(self, board):
         if self.type.upper() == 'P':
-            self.gen_moves_pawn(board)
+            return self.gen_moves_pawn(board)
         elif self.type.upper() == 'N':
-            self.gen_moves_knight(board)
+            return self.gen_moves_knight(board)
         elif self.type.upper() == 'B':
-            self.gen_moves_bishop(board)
+            return self.gen_moves_bishop(board)
         elif self.type.upper() == 'R':
-            self.gen_moves_rook(board)
+            return self.gen_moves_rook(board)
         elif self.type.upper() == 'Q':
-            self.gen_moves_queen(board)
+            return self.gen_moves_queen(board)
         elif self.type.upper() == 'K':
-            self.gen_moves_king(board)
+            return self.gen_moves_king(board)
         else:
             raise Exception("Invalid piece type")
         
@@ -50,19 +50,24 @@ class Piece:
         self.clear() # Clears moves and attacks
         p = self.position # Current position
         # All possible knight moves
-        moves = [p + 17, p + 15, # forward
+        # TODO: Fix board wrapping (knight at a2 tries to move to a7)
+        moves = []
+        potential_moves = [p + 17, p + 15, # forward
                  p + 10, p - 6,  # right
                  p - 15, p - 17, # down
                  p - 10, p + 6]  # left
         # prune for out of bounds and friendly fire
-        for m in moves:
+        # TODO: add checks for pins in update_moves method
+        for m in potential_moves:
             if (m < 0) or (m > 63):
                 continue
             if board.get_piece(m) is None:
-                self.moves.append(m)
+                moves.append(m)
             elif board.color_at(m) ^ self.color: # opposing color
-                self.attacks.append(m)
-                self.moves.append(m)
+                # TODO: add attacks method that loops through moves
+                #       to find which moves are attacks
+                moves.append(m)
+        return moves
             
 
     
