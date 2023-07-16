@@ -1,8 +1,13 @@
+from piece import Piece
+from pieces import Pieces
+
+
 # Starating fen
 start_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 # Unicode characters for the board
 mt = u'\u00b7' # eMpTy space
+marker = u'\u25cf'   # marker for possible moves
 pieces = {           # These colors are inverted, console black is white
     'P' : u'\u265F', # White Pawn
     'R' : u'\u265C', # White Rook
@@ -44,6 +49,8 @@ class Board:
         self.en_passant = string_to_pos(ep) if ep != '-' else None # e3, or - if no en passant
         self.halfmove = split[4]   # counter for 50 move rule
         self.fullmove = split[5]   # counter for full moves
+
+        self.markers = [] # list of markers for debugging
     
 
     def __str__(self) -> str:
@@ -52,13 +59,34 @@ class Board:
             ret += str(i) + ' '
             for j in range(8, 0, -1):
                 idx = (i*8) - j
-                if self.board[idx] is None:
+                if idx in self.markers:
+                    ret += marker + ' '
+                elif self.board[idx] is None:
                     ret += mt + ' '
                 else:
                     ret += pieces[self.board[idx]] + ' '
             ret += '\n'
         ret += '  a b c d e f g h'
         return ret
+
+
+    def add_marker(self, pos):
+        self.markers.append(pos)
+    
+
+    def clear_markers(self):
+        self.markers = []
+    
+
+    def color_at(self, pos):
+        # returns 1 for white and 0 for black
+        if self.board[pos] is None:
+            return None
+        return 1 if self.board[pos].isupper() else 0
+
+
+    def get_piece(self, pos):
+        return self.board[pos]
         
 
     def move_piece(self, s):
@@ -121,3 +149,14 @@ while True:
     if inp == 'q':
         break
     b.move(inp)
+
+
+knight_pos = [1, 6, 57, 62]
+knights = [Piece(b, i) for i in knight_pos]
+for k in knights:
+    print(f'Moves for knight at {k.position}: {k.moves}')
+    for m in k.moves:
+        b.add_marker(m)
+    print(b)
+    b.clear_markers()
+    print('\n')

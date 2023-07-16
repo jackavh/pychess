@@ -1,6 +1,3 @@
-from board import string_to_pos
-
-
 pieces = {
     0x0 : 'P',
     0x1 : 'N',
@@ -18,26 +15,13 @@ pieces = {
 
 pieces_inverse = {v: k for k, v in pieces.items()}
 
-# Piece Encoding
-# 0
-# x
-# 0 - B: Piece type and color
-# 0 - F: Position
-# 0 - 3: Position
-
-
-def encode(piece, position):
-    return (position << 4) + pieces_inverse[piece]
-
-
 class Piece:
 
-    def __init__(self, encode) -> None:
-        self.encode = encode
-        self.type = pieces[encode & 0xF] # Last digit of encode
-        self.color = 'w' if self.type.isupper() else 'b'
-        self.position = encode >> 4 # First 2 digits of encode
-        self.moves = None # list of possible moves
+    def __init__(self, board, position) -> None:
+        self.type = board.get_piece(position) # type of piece
+        self.color = 1 if self.type.isupper() else 0 # 0 for white, 1 for black
+        self.position = position
+        self.moves = self.gen_moves(board) # list of possible moves
         self.attacks = None # list of possible attacks
         self.pinned = None # True if pinned
         self.pinned_by = None # list of pieces pinning this piece
@@ -46,21 +30,41 @@ class Piece:
 
 
     def gen_moves(self, board):
-        if self.type == 'P':
+        if self.type.upper() == 'P':
             self.gen_moves_pawn(board)
-        elif self.type == 'N':
+        elif self.type.upper() == 'N':
             self.gen_moves_knight(board)
-        elif self.type == 'B':
+        elif self.type.upper() == 'B':
             self.gen_moves_bishop(board)
-        elif self.type == 'R':
+        elif self.type.upper() == 'R':
             self.gen_moves_rook(board)
-        elif self.type == 'Q':
+        elif self.type.upper() == 'Q':
             self.gen_moves_queen(board)
-        elif self.type == 'K':
+        elif self.type.upper() == 'K':
             self.gen_moves_king(board)
         else:
             raise Exception("Invalid piece type")
         
+    
+    def gen_moves_knight(self, board):
+        self.clear() # Clears moves and attacks
+        p = self.position # Current position
+        # All possible knight moves
+        moves = [p + 17, p + 15, # forward
+                 p + 10, p - 6,  # right
+                 p - 15, p - 17, # down
+                 p - 10, p + 6]  # left
+        # prune for out of bounds and friendly fire
+        for m in moves:
+            if (m < 0) or (m > 63):
+                continue
+            if board.get_piece(m) is None:
+                self.moves.append(m)
+            elif board.color_at(m) ^ self.color: # opposing color
+                self.attacks.append(m)
+                self.moves.append(m)
+            
+
     
     def gen_moves_pawn(self, board):
         self.clear() # Clears moves and attacks
@@ -75,20 +79,20 @@ class Piece:
         if (self.color == 'w'):
 
             # Double move behavior
-            forward_is_empty = board[self.position + 16] is None
+            forward_is_empty = board.get_piece(self.position + 16) is None
             on_second_rank = self.position in list(range(8, 16))
             if forward_is_empty and on_second_rank:
                 self.moves.append(self.position + 16)
-                # TODO: add en pessant here
+                # TODO: add en passant here
             
             # Single move behavior
-            forward_is_empty = board[self.position + 8] is None
+            forward_is_empty = board.get_piece(self.position + 8) is None
             if forward_is_empty:
                 self.moves.append(self.position + 8)
             
             # Capture behavior
-            capture_left = board[self.position + 9] is not None
-            capture_right = board[self.position + 7] is not None
+            capture_left = board.get_piece(self.position + 9) is not None
+            capture_right = board.get_piece(self.position + 7) is not None
             if capture_left:
                 self.attacks.append(self.position + 9)
                 self.moves.append(self.position + 9)
@@ -96,12 +100,15 @@ class Piece:
                 self.attacks.append(self.position + 7)
                 self.moves.append(self.position + 7)
             
-            # En pessant behavior
+            # En passant behavior
             
-
+        # Black pawn
         elif (self.color == 'b') and (self.position in list(range(48, 56))):
-            if board[self.position - 16] is None:
+            if board.get_piece(self.position - 16) is None:
                 self.moves.append(self.position - 16)
                 # TODO: add en pessant here
         
-        
+    
+    def clear(self):
+        self.moves = []
+        self.attacks = []
