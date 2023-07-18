@@ -2,7 +2,7 @@ import arcade
 from helper import *
 
 
-HIGHLIGHT_COLOR = (0xFF, 0x00, 0x00)
+HIGHLIGHT_COLOR = (0xFF, 0xa1, 0xa1)
 WHITE_COLOR = (0xEF, 0xD9, 0xB5)
 BLACK_COLOR = (0xb4, 0x88, 0x63)
 BACKGROUND  = (0x29, 0x27, 0x21)
@@ -11,6 +11,7 @@ BACKGROUND  = (0x29, 0x27, 0x21)
 class Display(arcade.Window):
 
     def __init__(self, width, height, title, square_size=None, padding=None):
+        self.display_size = (width, height)
         self.square_size = 64 if square_size is None else square_size
         self.padding = 0 if padding is None else padding
         self.highlights = None
@@ -26,12 +27,17 @@ class Display(arcade.Window):
         # Draw the game squares
         for x in range(8):
             for y in range(8):
-                # board_pos = 
-                highlighted = (x // self.square_size, y // self.square_size) in self.highlights
+                # Manage highlighting
+                highlighted = (x % self.square_size, y % self.square_size) in self.highlights
                 col = WHITE_COLOR if (x % 2) ^ (y % 2) else BLACK_COLOR
                 if highlighted:
-                    col = arcade.color.RED
+                    col = color_mul(HIGHLIGHT_COLOR, col)
+                
+                # Highlight the hover square
+                if self.hover_square == (x, y):
+                    col = color_mul(HIGHLIGHT_COLOR, col)
                     
+                # Draw the square
                 arcade.draw_xywh_rectangle_filled(x*self.square_size + self.padding/2,
                                                   y*self.square_size + self.padding/2,
                                                   self.square_size,
@@ -39,8 +45,9 @@ class Display(arcade.Window):
                                                   col)
         
         # DEBUG: write the hover square to the screen
-        # arcade.draw_text(str(highlighted), 16, 16, arcade.color.BLACK, 16)
-        # arcade.draw_text(str(self.hover_square), 16, 16, arcade.color.BLACK, 16)
+        debug_str = f'Hover square: {self.hover_square}\nHighlighted: {self.highlights}'
+        arcade.draw_text(debug_str, 16, self.display_size[1] - 32, arcade.color.BLACK, 16,
+                         multiline=True, width=self.display_size[0] - 32)
 
     
     def setup(self):
@@ -67,10 +74,20 @@ class Display(arcade.Window):
         in_bottom = y > self.padding/2
         x_in_bounds = in_left and in_right
         y_in_bounds = in_top and in_bottom
-        if x_in_bounds and y_in_bounds:
-            hx = int((x - self.padding/2) // self.square_size)
-            hy = int((y - self.padding/2) // self.square_size)
-            self.hover_square = (hx, hy)
+
+        # Catch out of bounds
+        if not x_in_bounds and not y_in_bounds:
+            self.hover_square = None
+            return
+        # Get board coordinates
+
+        hx = int((x - self.padding/2) // self.square_size)
+        hy = int((y - self.padding/2) // self.square_size)
+        # Update the hover square
+
+        self.hover_square = (hx, hy)
+    
+        
 
 
 
