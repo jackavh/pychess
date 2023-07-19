@@ -40,7 +40,7 @@ def main():
     game = Display(cfg.SCREEN_WIDTH, cfg.SCREEN_HEIGHT, cfg.SCREEN_TITLE,
                    square_size=cfg.SQUARE_SIZE, padding=cfg.PADDING)
     game.setup()
-    game.update_board(b.board)
+    game.update_board(b)
     arcade.run()
 
 

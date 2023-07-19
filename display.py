@@ -127,11 +127,11 @@ class Display(arcade.Window):
         self.piece_sprites.pop(idx)
 
 
-    def update_board(self, board):
+    def update_board(self, b):
         # Update the board
         # TODO: This is sloppy, we should not redraw all pieces every time
         self.piece_sprites = arcade.SpriteList()
-        for i, piece in enumerate(board):
+        for i, piece in enumerate(b.board):
             if piece != 0:
                 self.add_piece(piece, i)
 
