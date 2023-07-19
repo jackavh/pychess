@@ -102,10 +102,26 @@ class Display(arcade.Window):
     
         
     def on_mouse_press(self, x, y, button, modifiers):
+        # TODO: Implement piece dragging
+        # 1. Get the piece at the mouse position
+        # 2. Check if its a left clic
+        # 3. If it is, set the piece as the dragging piece
+        # 4. Attach the piece to the mouse
+        # 5. If the piece is dropped, check if the move is valid
+        # 6. If the move is valid, move the piece
+        # 7. If the move is invalid, return the piece to its original position
+        # 8. If the piece is dropped outside the board, return the piece to its original position
         pass
 
 
     def on_mouse_release(self, x, y, button, modifiers):
+        # TODO: Other part of piece dragging
+        # 1. Check if there is a piece being dragged currently
+        # 2. If there is, check if the piece is over a square
+        # 3. If it is, check if the move is valid
+        # 4. If the move is valid, move the piece
+        # 5. If the move is invalid, return the piece to its original position
+        # 6. If the piece is dropped outside the board, return the piece to its original position
         pass
 
 
