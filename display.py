@@ -1,35 +1,15 @@
+import cfg
 import arcade
 from helper import *
 import os
 
 
-# Size globals
-PADDING = 64
-SQUARE_SIZE = 128
-SCREEN_WIDTH = 8 * SQUARE_SIZE + PADDING
-SCREEN_HEIGHT = 8 * SQUARE_SIZE + PADDING
-SCREEN_TITLE = "pyChess"
-
-# Color globals
-HIGHLIGHT_COLOR = (0xFF, 0xa1, 0xa1)
-WHITE_COLOR = (0xEF, 0xD9, 0xB5)
-BLACK_COLOR = (0xb4, 0x88, 0x63)
-BACKGROUND  = (0x29, 0x27, 0x21)
-
-# Spritesheet globals
-PIECE_SPRITE_SHEET = os.path.join(os.getcwd(), 'assets', 'Chess_Pieces_Sprite.png')
-PIECE_SPRITES = arcade.load_spritesheet(PIECE_SPRITE_SHEET,
-                                        3840 / 6, 1280 / 2,
-                                        6, 12, 0)
-
-
 class DisplayPiece(arcade.Sprite):
 
-    def __init__(self, piece: int):
+    def __init__(self, piece: int, spritesheet):
         super().__init__()
-        self.scale = SQUARE_SIZE * (1/640)
-        self.texture = PIECE_SPRITES[get_sprite_from_piece(piece)]
-        
+        self.scale = cfg.SQUARE_SIZE * (1/640)
+        self.texture = spritesheet[get_sprite_from_piece(piece)]
 
 
     def set_board_position(self, idx):
@@ -37,16 +17,16 @@ class DisplayPiece(arcade.Sprite):
         Sets the coordinates of the sprite based on board index
         """
         x, y = flat_to_xy(idx)
-        self.center_x = x * SQUARE_SIZE + SQUARE_SIZE / 2 + PADDING / 2
-        self.center_y = y * SQUARE_SIZE + SQUARE_SIZE / 2 + PADDING / 2
+        self.center_x = x * cfg.SQUARE_SIZE + cfg.SQUARE_SIZE / 2 + cfg.PADDING / 2
+        self.center_y = y * cfg.SQUARE_SIZE + cfg.SQUARE_SIZE / 2 + cfg.PADDING / 2
 
     
     def set_xy_board_position(self, x, y):
         """
         Sets the coordinates of the sprite based on board position
         """
-        self.center_x = x * SQUARE_SIZE + SQUARE_SIZE / 2 + PADDING / 2
-        self.center_y = y * SQUARE_SIZE + SQUARE_SIZE / 2 + PADDING / 2
+        self.center_x = x * cfg.SQUARE_SIZE + cfg.SQUARE_SIZE / 2 + cfg.PADDING / 2
+        self.center_y = y * cfg.SQUARE_SIZE + cfg.SQUARE_SIZE / 2 + cfg.PADDING / 2
 
 
 class Display(arcade.Window):
@@ -58,50 +38,22 @@ class Display(arcade.Window):
         self.highlights = None
         self.hover_square = None
         self.piece_sprites = None
-        
+
+        # Spritesheet setup
+        sprite_path = os.path.join(os.getcwd(), 'assets', 'Chess_Pieces_Sprite.png')
+        self.spritesheet = arcade.load_spritesheet(sprite_path, 3840 / 6, 1280 / 2, 6, 12, 0)
+
+        # Window setup
         super().__init__(width, height, title)
-        arcade.set_background_color(BACKGROUND)
+        arcade.set_background_color(cfg.BACKGROUND)
 
 
     def on_draw(self):
         self.clear()
-
-        # Draw the game squares
-        for x in range(8):
-            for y in range(8):
-                # Manage highlighting
-                highlighted = (x % self.square_size, y % self.square_size) in self.highlights
-                col = WHITE_COLOR if (x % 2) ^ (y % 2) else BLACK_COLOR
-                if highlighted:
-                    col = color_mul(HIGHLIGHT_COLOR, col)
-                
-                # Highlight the hover square
-                if self.hover_square == (x, y):
-                    col = color_mul(HIGHLIGHT_COLOR, col)
-                    
-                # Draw the square
-                arcade.draw_xywh_rectangle_filled(x*self.square_size + self.padding/2,
-                                                  y*self.square_size + self.padding/2,
-                                                  self.square_size,
-                                                  self.square_size,
-                                                  col)
-        
-        # DEBUG: write the hover square to the screen
-        # debug_str = f'Hover square: {self.hover_square}\nHighlighted: {self.highlights}'
-        # arcade.draw_text(debug_str, 16, self.display_size[1] - 32, arcade.color.BLACK, 16,
-        #                  multiline=True, width=self.display_size[0] - 32)
-
-        # Draw the pieces
+        self.draw_squares()
         self.piece_sprites.draw()
 
         
-
-    def add_piece(self, piece: int, idx: int):
-        p = DisplayPiece(piece)
-        p.set_board_position(idx)
-        self.piece_sprites.append(p)
-
-    
     def setup(self):
         self.highlights = set()
         self.piece_sprites = arcade.SpriteList()
@@ -130,8 +82,6 @@ class Display(arcade.Window):
             self.add_piece(0b10110, i) # black pawns
 
 
-
-
     def update(self, delta_time):
         pass
 
@@ -145,30 +95,12 @@ class Display(arcade.Window):
 
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
-        # Handle hover square
-        in_left = x > self.padding/2
-        in_right = x < self.square_size*8 + self.padding/2
-        in_top = y < self.square_size*8 + self.padding/2
-        in_bottom = y > self.padding/2
-        x_in_bounds = in_left and in_right
-        y_in_bounds = in_top and in_bottom
-
-        # Catch out of bounds
-        if not x_in_bounds and not y_in_bounds:
-            self.hover_square = None
-            return
-        # Get board coordinates
-
-        hx = int((x - self.padding/2) // self.square_size)
-        hy = int((y - self.padding/2) // self.square_size)
         # Update the hover square
-
-        self.hover_square = (hx, hy)
+        self.hover_square = self.get_hover_square(x, y)
+        if self.hover_square is not None:
+            self.hover_square_idx = xy_to_flat(*self.hover_square)
     
         
-
-
-
     def on_mouse_press(self, x, y, button, modifiers):
         pass
 
@@ -185,13 +117,52 @@ class Display(arcade.Window):
         pass
 
 
-# Run the game
-def main():
-    game = Display(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE,
-                   square_size=SQUARE_SIZE, padding=PADDING)
-    game.setup()
-    arcade.run()
+    def add_piece(self, piece: int, idx: int):
+        p = DisplayPiece(piece, self.spritesheet)
+        p.set_board_position(idx)
+        self.piece_sprites.insert(idx, p)
+    
+
+    def remove_piece(self, idx: int):
+        self.piece_sprites.pop(idx)
 
 
-if __name__ == "__main__":
-    main()
+    def update_board(self, board):
+        # Update the board
+        # TODO: This is sloppy, we should not redraw all pieces every time
+        self.piece_sprites = arcade.SpriteList()
+        for i, piece in enumerate(board):
+            if piece != 0:
+                self.add_piece(piece, i)
+
+
+    def draw_squares(self):
+        # Draw the game squares
+        for x in range(8):
+            for y in range(8):
+                # TODO: Rework highlighting
+                col = cfg.WHITE_COLOR if (x % 2) ^ (y % 2) else cfg.BLACK_COLOR
+                arcade.draw_xywh_rectangle_filled(x*self.square_size + self.padding/2,
+                                                  y*self.square_size + self.padding/2,
+                                                  self.square_size, self.square_size, col)
+
+
+    def get_hover_square(self, x, y):
+        # Handle hover square
+        in_left = x > self.padding/2
+        in_right = x < self.square_size*8 + self.padding/2
+        in_top = y < self.square_size*8 + self.padding/2
+        in_bottom = y > self.padding/2
+        x_in_bounds = in_left and in_right
+        y_in_bounds = in_top and in_bottom
+
+        # Catch out of bounds
+        if not x_in_bounds and not y_in_bounds:
+            self.hover_square = None
+            return
+        # Get board coordinates
+
+        hx = int((x - self.padding/2) // self.square_size)
+        hy = int((y - self.padding/2) // self.square_size)
+
+        return hx, hy
