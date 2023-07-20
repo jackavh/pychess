@@ -74,3 +74,7 @@ def color_screen(_a, _b):
     b = [x / 255 for x in _b]
     c = [1 - (1 - a[i]) * (1 - b[i]) for i in range(3)]
     return tuple([int(x * 255) for x in c])
+
+
+def color_add(a, b):
+    return tuple([min(a[i] + b[i], 255) for i in range(3)])

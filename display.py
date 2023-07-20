@@ -111,7 +111,8 @@ class Display(arcade.Window):
         # 6. If the move is valid, move the piece
         # 7. If the move is invalid, return the piece to its original position
         # 8. If the piece is dropped outside the board, return the piece to its original position
-        pass
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            pass
 
 
     def on_mouse_release(self, x, y, button, modifiers):
@@ -158,6 +159,9 @@ class Display(arcade.Window):
             for y in range(8):
                 # TODO: Rework highlighting
                 col = cfg.WHITE_COLOR if (x % 2) ^ (y % 2) else cfg.BLACK_COLOR
+                # Highlight the hover square
+                if self.hover_square is not None and (x, y) == self.hover_square:
+                    col = color_add(col, cfg.HOVER_COLOR)
                 arcade.draw_xywh_rectangle_filled(x*self.square_size + self.padding/2,
                                                   y*self.square_size + self.padding/2,
                                                   self.square_size, self.square_size, col)
