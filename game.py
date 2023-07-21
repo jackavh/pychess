@@ -8,6 +8,7 @@ class Board():
 
     def __init__(self) -> None:
         self.board = [cfg.NONE] * 64
+        self.legal_moves = []
         # Test pieces
         self.board[0] = cfg.WHITE ^ cfg.ROOK
         self.board[63] = cfg.BLACK ^ cfg.QUEEN
@@ -31,6 +32,10 @@ class Board():
         # Move the piece
         self.board[end] = self.board[start]
         self.board[start] = cfg.NONE
+    
+
+    def is_legal(self, start: int, end: int) -> bool:
+        pass
 
 
 # Run the game
@@ -38,9 +43,9 @@ def main():
     b = Board()
     b.setup_from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
     game = Display(cfg.SCREEN_WIDTH, cfg.SCREEN_HEIGHT, cfg.SCREEN_TITLE,
-                   square_size=cfg.SQUARE_SIZE, padding=cfg.PADDING)
+                   square_size=cfg.SQUARE_SIZE, padding=cfg.PADDING, board=b)
     game.setup()
-    game.update_board(b)
+    game.update_display_board()
     arcade.run()
 
 
