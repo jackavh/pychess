@@ -19,6 +19,8 @@ def get_piece_from_char(c: str) -> int:
 
 def get_char_from_piece(p: int) -> str:
     """Returns the character of a piece from a piece encoding"""
+    if p == 0:
+        return '_' # No piece
     is_white = p & 8
     c = pieces_inverse[p & 7]
     return c.upper() if is_white else c

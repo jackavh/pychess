@@ -11,6 +11,10 @@ class DisplayPiece(arcade.Sprite):
         self.piece = piece
         self.scale = cfg.SQUARE_SIZE * (1/640)
         self.texture = spritesheet[get_sprite_from_piece(piece)]
+    
+
+    def __str__ (self):
+        return get_char_from_piece(self.piece)
 
 
     def set_board_position(self, idx):
@@ -116,12 +120,14 @@ class Display(arcade.Window):
     
         
     def on_mouse_press(self, x, y, button, modifiers):
-        if self.get_hover_square(x, y) is None:
+        hover = self.get_hover_square(x, y)
+        if hover is None:
             return
+        hover_idx = xy_to_flat(*hover)
         if button == arcade.MOUSE_BUTTON_LEFT:
-            print(f'{self.get_time}click')
-        #     hover = self.get_hover_square(x, y)
-        #     self.drag_start = xy_to_flat(*hover)
+            print(f'click\t@\t({x}, {y}) -> {hover} -> idx: {hover_idx}\t\tpiece: {self.piece_sprites[hover_idx]}') # DEBUG
+            self.drag_start = hover_idx
+
         #     print(f"Drag start: {self.drag_start}") # DEBUG
         #     if self.board.board[self.drag_start] != 0:
         #         self.dragged_piece = self.piece_sprites[self.drag_start]
@@ -136,9 +142,13 @@ class Display(arcade.Window):
 
 
     def on_mouse_release(self, x, y, button, modifiers):
-        pass
-        # if button == arcade.MOUSE_BUTTON_LEFT:
-        #     hover = self.get_hover_square(x, y)
+        hover = self.get_hover_square(x, y)
+        if hover is None:
+            # return piece to original position
+            return
+        hover_idx = xy_to_flat(*hover)
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            print(f'release\t@\t({x}, {y}) -> {hover} -> idx: {hover_idx}') # DEBUG
         #     self.drag_end = xy_to_flat(*hover)
         #     print(f"Drag end: {self.drag_end}") # DEBUG
             
