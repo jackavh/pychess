@@ -2,36 +2,7 @@ import cfg
 import arcade
 from helper import *
 import os
-
-
-class DisplayPiece(arcade.Sprite):
-
-    def __init__(self, piece: int, spritesheet):
-        super().__init__()
-        self.piece = piece
-        self.scale = cfg.SQUARE_SIZE * (1/640)
-        self.texture = spritesheet[get_sprite_from_piece(piece)]
-    
-
-    def __str__ (self):
-        return get_char_from_piece(self.piece)
-
-
-    def set_board_position(self, idx):
-        """
-        Sets the coordinates of the sprite based on board index
-        """
-        x, y = flat_to_xy(idx)
-        self.center_x = x * cfg.SQUARE_SIZE + cfg.SQUARE_SIZE / 2 + cfg.PADDING / 2
-        self.center_y = y * cfg.SQUARE_SIZE + cfg.SQUARE_SIZE / 2 + cfg.PADDING / 2
-
-    
-    def set_xy_board_position(self, x, y):
-        """
-        Sets the coordinates of the sprite based on board position
-        """
-        self.center_x = x * cfg.SQUARE_SIZE + cfg.SQUARE_SIZE / 2 + cfg.PADDING / 2
-        self.center_y = y * cfg.SQUARE_SIZE + cfg.SQUARE_SIZE / 2 + cfg.PADDING / 2
+from display_piece import DisplayPiece
 
 
 class Display(arcade.Window):
@@ -63,37 +34,16 @@ class Display(arcade.Window):
     def on_draw(self):
         self.clear()
         self.draw_squares()
-        self.piece_sprites.draw()
-        if self.dragged_piece is not None:
-            self.dragged_piece.draw()
+        self.draw_pieces()
+        # TODO: Move into draw_pieces
+        # if self.dragged_piece is not None:
+        #     self.dragged_piece.draw()
 
         
     def setup(self):
         self.highlights = set()
-        # self.piece_sprites = arcade.SpriteList()
-        
-        
-        # # DEBUG: For fun, draw all the pieces on the board manually
-        # self.add_piece(0b01101, 0) # white rook
-        # self.add_piece(0b01100, 1) # white knight
-        # self.add_piece(0b01011, 2) # white bishop
-        # self.add_piece(0b01010, 3) # white queen
-        # self.add_piece(0b01001, 4) # white king
-        # self.add_piece(0b01011, 5) # white bishop
-        # self.add_piece(0b01100, 6) # white knight
-        # self.add_piece(0b01101, 7) # white rook
-        # for i in range(8, 16):
-        #     self.add_piece(0b01110, i) # white pawns
-        # self.add_piece(0b10101, 56) # black rook
-        # self.add_piece(0b10100, 57) # black knight
-        # self.add_piece(0b10011, 58) # black bishop
-        # self.add_piece(0b10010, 59) # black queen
-        # self.add_piece(0b10001, 60) # black king
-        # self.add_piece(0b10011, 61) # black bishop
-        # self.add_piece(0b10100, 62) # black knight
-        # self.add_piece(0b10101, 63) # black rook
-        # for i in range(48, 56):
-        #     self.add_piece(0b10110, i) # black pawns
+        self.piece_sprites = arcade.SpriteList()
+        # self.dragged_piece = DisplayPiece(0b01101, self.spritesheet) # DEBUG : white rook
 
 
     def update(self, delta_time):
@@ -125,63 +75,61 @@ class Display(arcade.Window):
             return
         hover_idx = xy_to_flat(*hover)
         if button == arcade.MOUSE_BUTTON_LEFT:
-            print(f'click\t@\t({x}, {y}) -> {hover} -> idx: {hover_idx}\t\tpiece: {self.piece_sprites[hover_idx]}') # DEBUG
+            print(f'click\t@\t({x}, {y}) -> {hover} -> idx: {hover_idx}\t\tpiece: {self.board.get_chpiece_at(hover_idx)}') # DEBUG
             self.drag_start = hover_idx
-
-        #     print(f"Drag start: {self.drag_start}") # DEBUG
-        #     if self.board.board[self.drag_start] != 0:
-        #         self.dragged_piece = self.piece_sprites[self.drag_start]
-        #         self.remove_piece(self.drag_start)
+            print(f"Drag start: {self.drag_start}") # DEBUG
+            hover_piece = self.board.get_piece_at(self.drag_start)
+            if hover_piece != 0:
+                self.dragged_piece = DisplayPiece(hover_piece, self.spritesheet)
+                self.remove_piece(self.drag_start)
         # elif button == arcade.MOUSE_BUTTON_RIGHT:
         #     # TODO: Implement arrow drawing
         #     pass
-                
-
-            
-
 
 
     def on_mouse_release(self, x, y, button, modifiers):
         hover = self.get_hover_square(x, y)
-        if hover is None:
-            # return piece to original position
-            return
         hover_idx = xy_to_flat(*hover)
         if button == arcade.MOUSE_BUTTON_LEFT:
             print(f'release\t@\t({x}, {y}) -> {hover} -> idx: {hover_idx}') # DEBUG
-        #     self.drag_end = xy_to_flat(*hover)
-        #     print(f"Drag end: {self.drag_end}") # DEBUG
+            self.drag_end = xy_to_flat(*hover)
+            print(f"Drag end: {self.drag_end}") # DEBUG
             
-        #     # If there is no dragged piece, do nothing
-        #     if self.dragged_piece is None:
-        #         return
+            # If there is no dragged piece, do nothing
+            if self.dragged_piece is None:
+                return
             
-        #     if self.drag_end is not None:
-        #         move = (self.drag_start, self.drag_end)
-        #     else:
-        #         # TODO: this is a hacky way to do this
-        #         move = (self.drag_start, -1)
+            if self.drag_end is not None:
+                move = (self.drag_start, self.drag_end)
+            else:
+                # TODO: this is a hacky way to do this
+                move = (self.drag_start, -1)
 
-        #     outside_board = hover is None
-        #     valid_move = self.board.is_legal(*move) # Should check if drag_end is None
-        #     same_square = self.drag_start == self.drag_end
+            outside_board = hover is None
+            valid_move = self.board.is_legal(*move) # Should check if drag_end is None
+            same_square = self.drag_start == self.drag_end
 
-        #     # Return the piece to its original position
-        #     if outside_board or (not valid_move) or same_square:
-        #         self.add_piece(self.dragged_piece.piece, self.drag_start)
-        #         self.dragged_piece = None
-        #         return
+            # Return the piece to its original position
+            if outside_board or (not valid_move) or same_square:
+                self.add_piece(self.dragged_piece.piece, self.drag_start)
+                self.dragged_piece = None
+                return
             
-        #     # Move the piece
-        #     self.move_on_board(move)
-        #     self.dragged_piece = None
-        #     self.update_display_board()
-
-            
+            # Move the piece
+            self.move_on_board(move)
+            self.dragged_piece = None
+            self.update_display_board()
 
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
-        pass
+        # Update the hover square
+        self.hover_square = self.get_hover_square(x, y)
+        if self.hover_square is not None:
+            self.hover_square_idx = xy_to_flat(*self.hover_square)
+        
+        # If there is a dragged piece, attach it to the mouse
+        if self.dragged_piece is not None:
+            self.dragged_piece.set_position(x, y)
 
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):

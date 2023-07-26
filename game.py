@@ -27,6 +27,14 @@ class Board():
                     board[i*8+j] = get_piece_from_char(c)
         self.board = board
 
+
+    def get_chpiece_at(self, idx) -> str:
+        return get_char_from_piece(self.board[idx])
+
+    
+    def get_piece_at(self, idx) -> int:
+        return self.board[idx]
+    
     
     def move_idx(self, start: int, end: int):
         # Move the piece

@@ -1,4 +1,4 @@
-from piece import Piece
+from piece_old import Piece
 from pieces import Pieces
 
 
