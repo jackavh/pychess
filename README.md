@@ -1,11 +1,34 @@
 # pychess
+
 Machine learning chess engine powered by pytorch, sitting on top of a simple board representation and legal move generator.
 
+### GitHub PGN Database
+
+2013 - January
+
+Stores 121,332 games (17.8 MB)
+
+
+### Local PGN Database
+
+2015 - August
+
+Stores 2,621,861 games (504 MB)
+
+Data provided by the [lichess.org open database](https://database.lichess.org/), available under the [Creative Commons CC0 License](https://creativecommons.org/publicdomain/zero/1.0/).
+
+\*NOTE\* In order for the scripts in this repository to work, the dataset must be unzipped from the .zst format
+
+    unzstd filename.zst
+
 # Representations
+
 ## Board
+
 Array[64] of integers
 
 ## Move
+
 A tuple storing the start and end of a move
 
 ## Piece Representations
