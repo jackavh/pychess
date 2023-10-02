@@ -48,12 +48,3 @@ A tuple storing the start and end of a move
 Creating a piece representation is accomplished by OR-ing two of these values together, for example a white rook would be `8 ^ 5 = 01101`
 
 ## TBD
-
-# The Parts of Chess
-
-What is chess made up of? Chess has
-1. A Board
-2. Moves
-3. Pieces
-4. Captures
-5. 
